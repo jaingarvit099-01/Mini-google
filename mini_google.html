@@ -1,0 +1,1254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mini Google | Keyword Frequency vs. PageRank Comparator</title>
+  <!-- Load Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <!-- Font Awesome for crisp UI icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    /* Clean Light Theme Glassmorphism, Shadows & Keyframe Animations */
+    body {
+      background-color: #f8fafc;
+      background-image:
+        radial-gradient(circle at 12% 10%, rgba(99, 102, 241, 0.08), transparent 36%),
+        radial-gradient(circle at 88% 14%, rgba(6, 182, 212, 0.09), transparent 36%),
+        radial-gradient(circle at 50% 92%, rgba(59, 130, 246, 0.06), transparent 44%);
+      min-height: 100vh;
+    }
+
+    .glass-card {
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05);
+      transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.25s ease, border-color 0.25s ease;
+    }
+
+    .glass-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px -4px rgba(15, 23, 42, 0.09);
+    }
+
+    /* Prominent #1 Rank Styling (Light Mode Adapted) */
+    .rank-one-traditional {
+      background: linear-gradient(135deg, rgba(238, 242, 255, 0.98), rgba(245, 243, 255, 0.98));
+      border: 1.5px solid #818cf8;
+      box-shadow: 0 10px 26px -4px rgba(99, 102, 241, 0.18);
+    }
+
+    .rank-one-pagerank {
+      background: linear-gradient(135deg, rgba(236, 254, 255, 0.98), rgba(240, 253, 250, 0.98));
+      border: 1.5px solid #22d3ee;
+      box-shadow: 0 10px 26px -4px rgba(6, 182, 212, 0.18);
+    }
+
+    /* Animated Progress Bars */
+    .progress-bar-fill {
+      transition: width 0.75s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    /* Subtle Pulse Loader */
+    @keyframes scanPulse {
+      0%, 100% { opacity: 0.65; transform: scale(0.99); }
+      50% { opacity: 1; transform: scale(1.01); }
+    }
+    .animate-scan {
+      animation: scanPulse 1.2s infinite ease-in-out;
+    }
+
+    /* Custom Light Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+  </style>
+</head>
+<body class="text-slate-900 font-sans antialiased selection:bg-blue-500/20 selection:text-blue-900">
+
+  <!-- Main Container -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+    <!-- Header & Title Banner -->
+    <header class="text-center mb-8">
+      <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-slate-200 text-xs font-medium text-slate-600 mb-4 shadow-sm">
+        <i class="fa-solid fa-diagram-project text-indigo-600"></i>
+        <span>Mini Google • Information Retrieval &amp; Web Graph Lab (6-Node Closed Index)</span>
+      </div>
+
+      <!-- Google-inspired crisp multi-color branding -->
+      <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight flex items-center justify-center flex-wrap gap-x-2">
+        <span>
+          <span class="text-blue-600">M</span><span class="text-red-500">i</span><span class="text-amber-500">n</span><span class="text-blue-600">i</span>
+        </span>
+        <span>
+          <span class="text-blue-600">G</span><span class="text-red-500">o</span><span class="text-amber-500">o</span><span class="text-blue-600">g</span><span class="text-emerald-600">l</span><span class="text-red-500">e</span>
+        </span>
+      </h1>
+      <p class="mt-2 text-sm sm:text-base font-semibold text-slate-700">
+        Search Engine Ranking Comparator
+      </p>
+      <p class="mt-1.5 text-xs sm:text-sm text-slate-500 max-w-2xl mx-auto">
+        Compare how <span class="text-indigo-600 font-semibold">Traditional Keyword Frequency</span> ranks pages versus <span class="text-teal-600 font-semibold">Larry Page’s Iterative PageRank Algorithm</span> across our 6 indexed food &amp; pizza websites.
+      </p>
+    </header>
+
+    <!-- Top Search Bar Section -->
+    <section aria-label="Search Bar" class="max-w-3xl mx-auto mb-6">
+      <div class="glass-card rounded-2xl p-3 sm:p-4 border border-slate-200 focus-within:border-blue-400 focus-within:ring-4 focus-within:ring-blue-500/10">
+        <form id="searchForm" class="flex flex-col sm:flex-row gap-3">
+          <div class="relative flex-1 flex items-center">
+            <i class="fa-solid fa-magnifying-glass absolute left-4 text-slate-400 pointer-events-none"></i>
+            <input
+              type="text"
+              id="searchInput"
+              placeholder="Search Mini Google (e.g., pizza, pune, college, cheap)..."
+              autocomplete="off"
+              class="w-full bg-slate-50 text-slate-900 placeholder-slate-400 pl-11 pr-10 py-3.5 rounded-xl border border-slate-200 focus:bg-white focus:outline-none focus:border-blue-500 transition text-sm sm:text-base"
+            />
+            <button
+              type="button"
+              id="clearSearchBtn"
+              title="Clear search"
+              class="hidden absolute right-3 text-slate-400 hover:text-slate-700 p-1.5 rounded-lg"
+            >
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+          <button
+            type="submit"
+            id="searchBtn"
+            class="px-7 py-3.5 rounded-xl font-semibold text-white bg-gradient-to-r from-blue-600 via-indigo-600 to-teal-600 hover:from-blue-500 hover:to-teal-500 active:scale-[0.99] transition shadow-md shadow-blue-600/20 flex items-center justify-center gap-2 cursor-pointer"
+          >
+            <i class="fa-solid fa-bolt"></i>
+            <span>Mini Google Search</span>
+          </button>
+        </form>
+
+        <!-- Quick Keyword Suggestions & Validation Message -->
+        <div class="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs">
+          <div class="flex flex-wrap items-center gap-1.5">
+            <span class="text-slate-500 mr-1">Try keyword:</span>
+            <button type="button" data-keyword="pizza" class="quick-chip px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-indigo-50 border border-slate-200 hover:border-indigo-300 text-slate-700 hover:text-indigo-700 font-medium transition cursor-pointer">pizza</button>
+            <button type="button" data-keyword="pune" class="quick-chip px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-indigo-50 border border-slate-200 hover:border-indigo-300 text-slate-700 hover:text-indigo-700 font-medium transition cursor-pointer">pune</button>
+            <button type="button" data-keyword="college" class="quick-chip px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-indigo-50 border border-slate-200 hover:border-indigo-300 text-slate-700 hover:text-indigo-700 font-medium transition cursor-pointer">college</button>
+            <button type="button" data-keyword="cheap" class="quick-chip px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-indigo-50 border border-slate-200 hover:border-indigo-300 text-slate-700 hover:text-indigo-700 font-medium transition cursor-pointer">cheap</button>
+            <button type="button" data-keyword="recipe" class="quick-chip px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-indigo-50 border border-slate-200 hover:border-indigo-300 text-slate-700 hover:text-indigo-700 font-medium transition cursor-pointer">recipe</button>
+          </div>
+          <div id="indexSummaryPill" class="text-slate-500 font-mono text-[11px]">
+            Indexed: <span id="indexedCountText" class="text-emerald-600 font-semibold">0/6</span> sites ready
+          </div>
+        </div>
+
+        <!-- Inline Empty-Search Validation Alert -->
+        <div id="validationMessage" class="hidden mt-3 px-3.5 py-2.5 rounded-xl bg-amber-50 border border-amber-300 text-amber-800 text-xs sm:text-sm flex items-center gap-2">
+          <i class="fa-solid fa-triangle-exclamation text-amber-600"></i>
+          <span>Please enter a valid keyword before running a Mini Google search.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Honest CORS-Aware Indexing & Content Management Bar -->
+    <section aria-label="Crawler and Content Indexer" class="mb-8">
+      <div class="glass-card rounded-2xl border border-slate-200 overflow-hidden">
+        <!-- Top Status Bar -->
+        <div class="px-4 sm:px-6 py-3.5 bg-slate-50/90 flex flex-wrap items-center justify-between gap-3 border-b border-slate-200">
+          <div class="flex items-center gap-3">
+            <span class="w-2.5 h-2.5 rounded-full bg-teal-500 animate-pulse"></span>
+            <div>
+              <h2 class="text-sm font-semibold text-slate-900">Mini Google Crawler &amp; CORS Content Indexer (6 Fixed Domains)</h2>
+              <p id="crawlerStatusBanner" class="text-xs text-slate-500">Checking live browser fetch status &amp; local index...</p>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              id="retryFetchBtn"
+              class="px-3 py-1.5 rounded-xl text-xs font-medium bg-white hover:bg-teal-50 text-teal-700 border border-teal-200 transition flex items-center gap-1.5 shadow-2xs cursor-pointer"
+            >
+              <i class="fa-solid fa-rotate"></i>
+              <span>Attempt Live Fetch</span>
+            </button>
+            <button
+              type="button"
+              id="loadSampleBtn"
+              class="px-3 py-1.5 rounded-xl text-xs font-medium bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 transition flex items-center gap-1.5 cursor-pointer"
+            >
+              <i class="fa-solid fa-database"></i>
+              <span>Load Demo Content</span>
+            </button>
+            <button
+              type="button"
+              id="clearContentBtn"
+              class="px-3 py-1.5 rounded-xl text-xs font-medium bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 transition flex items-center gap-1.5 cursor-pointer"
+            >
+              <i class="fa-solid fa-eraser"></i>
+              <span>Clear All Content</span>
+            </button>
+            <button
+              type="button"
+              id="toggleIndexerBtn"
+              class="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-white transition flex items-center gap-1.5 cursor-pointer"
+            >
+              <i class="fa-solid fa-sliders"></i>
+              <span id="toggleIndexerLabel">Manage / Paste Site Content</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Compact 6-Site Index Status Pills -->
+        <div id="siteStatusGrid" class="px-4 sm:px-6 py-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 bg-white">
+          <!-- Populated dynamically via JS -->
+        </div>
+
+        <!-- Collapsible Manual Content Editor (for CORS fallback) -->
+        <div id="indexerDrawer" class="hidden border-t border-slate-200 p-4 sm:p-6 bg-slate-50">
+          <div class="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <h3 class="text-sm font-bold text-slate-900">Manual Website Content Indexer (CORS Fallback)</h3>
+              <p class="text-xs text-slate-600">
+                Because browsers block cross-origin requests (CORS) to external domains without permission, paste or edit the text content for each of the 6 websites below. Every source is transparently labeled.
+              </p>
+            </div>
+            <button
+              type="button"
+              id="saveManualContentBtn"
+              class="px-4 py-2 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm transition self-start sm:self-auto cursor-pointer"
+            >
+              <i class="fa-solid fa-check mr-1"></i> Save &amp; Re-Index Content
+            </button>
+          </div>
+
+          <div id="manualEditorsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <!-- 6 Textareas generated dynamically -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Loading Overlay Animation during Search -->
+    <div id="loadingIndicator" class="hidden my-10 text-center">
+      <div class="inline-flex flex-col items-center gap-3 px-8 py-6 rounded-2xl glass-card border border-blue-200 animate-scan">
+        <div class="flex items-center gap-3">
+          <span class="w-3.5 h-3.5 rounded-full bg-blue-600 animate-bounce"></span>
+          <span class="w-3.5 h-3.5 rounded-full bg-red-500 animate-bounce [animation-delay:0.1s]"></span>
+          <span class="w-3.5 h-3.5 rounded-full bg-amber-500 animate-bounce [animation-delay:0.2s]"></span>
+          <span class="w-3.5 h-3.5 rounded-full bg-emerald-500 animate-bounce [animation-delay:0.3s]"></span>
+        </div>
+        <p class="text-sm font-medium text-slate-700">Mini Google is computing Keyword Frequencies &amp; Converging PageRank Matrix...</p>
+      </div>
+    </div>
+
+    <!-- Active Query Banner -->
+    <div id="activeQueryHeader" class="hidden mb-6 flex flex-wrap items-center justify-between gap-2 px-4 py-3 rounded-xl bg-white border border-slate-200 shadow-2xs">
+      <div class="text-sm text-slate-600">
+        Mini Google dual-algorithm results for keyword:
+        <span id="displayKeyword" class="ml-1.5 px-3 py-0.5 rounded-lg bg-gradient-to-r from-indigo-50 to-cyan-50 border border-indigo-200 font-mono font-bold text-slate-900"></span>
+      </div>
+      <div class="text-xs text-slate-500 font-mono">
+        PageRank Convergence: <span id="prIterationsMeta" class="text-teal-700 font-semibold">—</span>
+      </div>
+    </div>
+
+    <!-- MAIN TWO-COLUMN COMPARISON DASHBOARD -->
+    <main id="resultsDashboard" class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-start">
+
+      <!-- ========================================================= -->
+      <!-- SECTION A (LEFT): TRADITIONAL SEARCH – KEYWORD FREQUENCY  -->
+      <!-- ========================================================= -->
+      <section aria-labelledby="traditionalHeading" class="rounded-3xl p-5 sm:p-6 bg-indigo-50/45 border border-indigo-200/80 shadow-sm">
+        <!-- Section Header -->
+        <div class="flex items-start justify-between gap-3 pb-4 mb-5 border-b border-indigo-200/70">
+          <div>
+            <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-indigo-100 border border-indigo-200 text-[11px] font-mono uppercase tracking-wider text-indigo-700 font-semibold mb-2">
+              <i class="fa-solid fa-font"></i> Method 01 • Legacy IR
+            </div>
+            <h2 id="traditionalHeading" class="text-xl sm:text-2xl font-bold text-slate-900">
+              Traditional Search – Keyword Frequency
+            </h2>
+            <p class="text-xs sm:text-sm text-slate-600 mt-1">
+              Ranked according to how frequently the keyword appears.
+            </p>
+          </div>
+          <div class="w-11 h-11 rounded-2xl bg-indigo-100 border border-indigo-200 flex items-center justify-center text-indigo-600 shrink-0">
+            <i class="fa-solid fa-arrow-down-9-1 text-lg"></i>
+          </div>
+        </div>
+
+        <!-- No-Results Message for Keyword Search -->
+        <div id="traditionalNoResults" class="hidden rounded-2xl p-6 bg-white border border-indigo-200 text-center">
+          <i class="fa-regular fa-face-frown text-3xl text-indigo-500 mb-2"></i>
+          <h3 class="text-base font-semibold text-slate-900">No Keyword Matches Found</h3>
+          <p id="traditionalNoResultsText" class="text-xs sm:text-sm text-slate-500 mt-1">
+            The searched keyword did not appear in any currently indexed website content.
+          </p>
+        </div>
+
+        <!-- Traditional Results Container -->
+        <div id="traditionalResultsList" class="space-y-4">
+          <!-- Cards rendered via JavaScript -->
+        </div>
+      </section>
+
+      <!-- ========================================================= -->
+      <!-- SECTION B (RIGHT): PAGERANK SEARCH – LINK-BASED RANKING   -->
+      <!-- ========================================================= -->
+      <section aria-labelledby="pagerankHeading" class="rounded-3xl p-5 sm:p-6 bg-cyan-50/45 border border-cyan-200/80 shadow-sm">
+        <!-- Section Header -->
+        <div class="flex items-start justify-between gap-3 pb-4 mb-5 border-b border-cyan-200/70">
+          <div>
+            <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-cyan-100 border border-cyan-200 text-[11px] font-mono uppercase tracking-wider text-teal-800 font-semibold mb-2">
+              <i class="fa-solid fa-circle-nodes"></i> Method 02 • Graph Authority
+            </div>
+            <h2 id="pagerankHeading" class="text-xl sm:text-2xl font-bold text-slate-900">
+              PageRank Search – Link-Based Ranking
+            </h2>
+            <p class="text-xs sm:text-sm text-slate-600 mt-1">
+              Ranked according to the importance and authority passed through incoming links.
+            </p>
+          </div>
+          <div class="w-11 h-11 rounded-2xl bg-cyan-100 border border-cyan-200 flex items-center justify-center text-teal-700 shrink-0">
+            <i class="fa-solid fa-crown text-lg"></i>
+          </div>
+        </div>
+
+        <!-- Mathematical Formula Badge -->
+        <div class="mb-4 px-3.5 py-2.5 rounded-xl bg-white border border-cyan-200 flex flex-wrap items-center justify-between gap-2 text-xs shadow-2xs">
+          <code class="font-mono font-semibold text-teal-700">PR(A) = (1-d)/N + d × Σ(PR(Ti)/C(Ti))</code>
+          <span class="text-slate-500 font-mono">d = 0.85 | N = 6 | Max Iter = 100</span>
+        </div>
+
+        <!-- PageRank Results Container -->
+        <div id="pagerankResultsList" class="space-y-4">
+          <!-- Cards rendered via JavaScript -->
+        </div>
+      </section>
+
+    </main>
+
+    <!-- ========================================================= -->
+    <!-- VISUAL LINK GRAPH & COMPARISON SUMMARY SECTION            -->
+    <!-- ========================================================= -->
+    <section aria-label="Algorithm Comparison Summary" class="mt-8 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+      <!-- Comparison Analytical Summary (7 cols) -->
+      <div class="lg:col-span-7 glass-card rounded-3xl p-6 border border-slate-200">
+        <div class="flex items-center gap-2.5 mb-4">
+          <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-100 to-cyan-100 border border-slate-200 flex items-center justify-center text-indigo-600">
+            <i class="fa-solid fa-scale-balanced"></i>
+          </div>
+          <div>
+            <h3 class="text-lg font-bold text-slate-900">Mini Google Algorithm Comparison &amp; Analysis</h3>
+            <p class="text-xs text-slate-500">Live diagnostic comparing both ranking models for your current search</p>
+          </div>
+        </div>
+
+        <div id="comparisonSummaryContent" class="space-y-4 text-sm text-slate-700 leading-relaxed">
+          <!-- Dynamically populated after search -->
+        </div>
+      </div>
+
+      <!-- Directed Web Graph Visualization (5 cols) -->
+      <div class="lg:col-span-5 glass-card rounded-3xl p-6 border border-cyan-200/80 flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+              <i class="fa-solid fa-share-nodes text-teal-600"></i>
+              <span>Fixed Directed Link Topology</span>
+            </h3>
+            <span class="text-[11px] font-mono text-slate-500">6 Nodes • 8 Edges</span>
+          </div>
+          <p class="text-xs text-slate-600 mb-3">
+            Arrows show outgoing endorsements (<code class="text-teal-700 font-semibold">Page X → Page Y</code>). Notice how multiple pages point to <strong class="text-teal-700">Page 2</strong>.
+          </p>
+        </div>
+
+        <!-- SVG Directed Graph -->
+        <div class="bg-slate-50 rounded-2xl border border-slate-200 p-2 flex items-center justify-center">
+          <svg id="linkGraphSvg" viewBox="0 0 420 270" class="w-full h-auto max-h-64" role="img" aria-label="Directed link graph of the 6 websites">
+            <defs>
+              <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="22" refY="3" orient="auto">
+                <polygon points="0 0, 8 3, 0 6" fill="#0891b2" opacity="0.9" />
+              </marker>
+              <marker id="arrowhead-highlight" markerWidth="9" markerHeight="7" refX="22" refY="3.5" orient="auto">
+                <polygon points="0 0, 9 3.5, 0 7" fill="#4f46e5" />
+              </marker>
+            </defs>
+            <!-- Graph edges & nodes drawn cleanly via JS -->
+          </svg>
+        </div>
+
+        <!-- Text Legend of Edges -->
+        <div class="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-1.5 text-[11px] font-mono text-slate-600">
+          <div class="px-2 py-1 rounded bg-slate-100 border border-slate-200">P1 → P2</div>
+          <div class="px-2 py-1 rounded bg-slate-100 border border-slate-200">P2 → P1, P3</div>
+          <div class="px-2 py-1 rounded bg-slate-100 border border-slate-200">P3 → P2, P4</div>
+          <div class="px-2 py-1 rounded bg-slate-100 border border-slate-200">P4 → P2, P5</div>
+          <div class="px-2 py-1 rounded bg-slate-100 border border-slate-200">P5 → P2</div>
+          <div class="px-2 py-1 rounded bg-slate-100 border border-slate-200">P6 → P1</div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Footer -->
+    <footer class="mt-10 pt-6 border-t border-slate-200 text-center text-xs text-slate-500">
+      Mini Google • Built with HTML5, Tailwind CSS &amp; Vanilla JavaScript • Runs client-side on VS Code Live Server
+    </footer>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- JAVASCRIPT: CENTRALIZED DATA, CORS INDEXER, FREQUENCY & PAGERANK      -->
+  <!-- ===================================================================== -->
+  <script>
+    /**
+     * 1. CENTRALIZED WEBSITE DATA ARRAY
+     * Contains ONLY the six specified websites in exact Page 1 -> Page 6 order.
+     * Easily modifiable for future experiments.
+     */
+    const WEBSITES = [
+      {
+        id: 1,
+        pageLabel: "Page 1",
+        name: "Pune Food Guide",
+        url: "http://pune-food-guide.com",
+        outgoingLinks: [2], // Page 1 -> Page 2
+        fetchStatus: "pending", // 'live' | 'cors-blocked' | 'pending'
+        contentSource: "sample", // 'live' | 'user' | 'sample' | 'empty'
+        content: "",
+        sampleContent:
+          "Welcome to the ultimate Pune Food Guide! Discover authentic Maharashtrian thalis, street food in Koregaon Park, Viman Nagar cafes, and top-rated artisanal pizza spots across Pune. Our editors review local restaurants, bakeries, and hidden culinary gems in Pune every week."
+      },
+      {
+        id: 2,
+        pageLabel: "Page 2",
+        name: "Best Pizza Pune",
+        url: "http://best-pizza-pune.com",
+        outgoingLinks: [1, 3], // Page 2 -> Page 1, Page 3
+        fetchStatus: "pending",
+        contentSource: "sample",
+        content: "",
+        sampleContent:
+          "Looking for the best wood-fired sourdough pizza in Pune? Best Pizza Pune ranks authentic Neapolitan pizzerias in Baner, Kalyani Nagar, and Koregaon Park. Enjoy fresh mozzarella, basil, and hand-stretched crust recommended by Pune food bloggers."
+      },
+      {
+        id: 3,
+        pageLabel: "Page 3",
+        name: "College Canteen Blog",
+        url: "http://college-canteen-blog.com",
+        outgoingLinks: [2, 4], // Page 3 -> Page 2, Page 4
+        fetchStatus: "pending",
+        contentSource: "sample",
+        content: "",
+        sampleContent:
+          "Life on campus revolves around the college canteen! From spicy misal pav and cold coffee between lectures to Friday evening pizza treats with classmates, our college blog covers student hangout spots near Pune universities."
+      },
+      {
+        id: 4,
+        pageLabel: "Page 4",
+        name: "Pizza Recipes Home",
+        url: "http://pizza-recipes-home.com",
+        outgoingLinks: [2, 5], // Page 4 -> Page 2, Page 5
+        fetchStatus: "pending",
+        contentSource: "sample",
+        content: "",
+        sampleContent:
+          "Bake restaurant-style pizza at home with our easy step-by-step recipe guide. Learn how to ferment pizza dough overnight, simmer rich San Marzano tomato sauce, and bake crispy pan pizza in a regular home oven."
+      },
+      {
+        id: 5,
+        pageLabel: "Page 5",
+        name: "Cheap Eats Pune",
+        url: "http://cheap-eats-pune.com",
+        outgoingLinks: [2], // Page 5 -> Page 2
+        fetchStatus: "pending",
+        contentSource: "sample",
+        content: "",
+        sampleContent:
+          "Eating out in Pune on a student budget? Cheap Eats Pune curates pocket-friendly meals under 150 rupees—including rolls, momos, South Indian breakfasts, and budget pizza slices near FC Road and Kothrud."
+      },
+      {
+        id: 6,
+        pageLabel: "Page 6",
+        name: "Pizza Pizza Pizza",
+        url: "http://pizza-pizza-pizza.com",
+        outgoingLinks: [1], // Page 6 -> Page 1
+        fetchStatus: "pending",
+        contentSource: "sample",
+        content: "",
+        // Intentionally keyword-stuffed to demonstrate how Traditional Search gets gamed
+        // while PageRank stays immune because Page 6 has 0 incoming links!
+        sampleContent:
+          "Pizza pizza pizza! Best pizza deals, hot pizza delivery, cheesy pizza, extra pizza toppings, pizza combo offers, midnight pizza, mega pizza party! Order pizza pizza pizza right now for non-stop pizza cravings!"
+      }
+    ];
+
+    // Application State
+    let currentKeyword = "pizza";
+    let pageRankCache = null;
+
+    // DOM Element References
+    const searchForm = document.getElementById("searchForm");
+    const searchInput = document.getElementById("searchInput");
+    const clearSearchBtn = document.getElementById("clearSearchBtn");
+    const validationMessage = document.getElementById("validationMessage");
+    const loadingIndicator = document.getElementById("loadingIndicator");
+    const activeQueryHeader = document.getElementById("activeQueryHeader");
+    const displayKeyword = document.getElementById("displayKeyword");
+    const prIterationsMeta = document.getElementById("prIterationsMeta");
+    const traditionalResultsList = document.getElementById("traditionalResultsList");
+    const traditionalNoResults = document.getElementById("traditionalNoResults");
+    const traditionalNoResultsText = document.getElementById("traditionalNoResultsText");
+    const pagerankResultsList = document.getElementById("pagerankResultsList");
+    const comparisonSummaryContent = document.getElementById("comparisonSummaryContent");
+    const siteStatusGrid = document.getElementById("siteStatusGrid");
+    const indexedCountText = document.getElementById("indexedCountText");
+    const crawlerStatusBanner = document.getElementById("crawlerStatusBanner");
+    const indexerDrawer = document.getElementById("indexerDrawer");
+    const manualEditorsContainer = document.getElementById("manualEditorsContainer");
+
+    /**
+     * 2. ITERATIVE PAGERANK ALGORITHM IMPLEMENTATION
+     * Formula: PR(A) = (1 - d) / N + d * Σ( PR(Ti) / C(Ti) )
+     * Parameters:
+     *   - d (Damping factor) = 0.85
+     *   - N (Total pages) = 6
+     *   - Max iterations = 100
+     *   - Convergence threshold = 1e-7
+     */
+    function calculatePageRank(websites, dampingFactor = 0.85, maxIterations = 100, tolerance = 1e-7) {
+      const N = websites.length;
+      // Initialize all pages with equal probability: 1 / N
+      let scores = new Array(N).fill(1 / N);
+      let iterationsRun = 0;
+      let converged = false;
+
+      // Precompute incoming links for each page (0-indexed)
+      const incomingMap = Array.from({ length: N }, () => []);
+      websites.forEach((site, fromIdx) => {
+        site.outgoingLinks.forEach((targetId) => {
+          const toIdx = websites.findIndex((w) => w.id === targetId);
+          if (toIdx !== -1) {
+            incomingMap[toIdx].push(fromIdx);
+          }
+        });
+      });
+
+      // Iterative Power Method until convergence or maxIterations
+      for (let iter = 1; iter <= maxIterations; iter++) {
+        iterationsRun = iter;
+        const nextScores = new Array(N).fill(0);
+        let maxDiff = 0;
+
+        for (let i = 0; i < N; i++) {
+          let incomingSum = 0;
+
+          // Sum PR(Ti) / C(Ti) for every page Ti that links to page i
+          for (const sourceIdx of incomingMap[i]) {
+            const outDegree = websites[sourceIdx].outgoingLinks.length;
+            if (outDegree > 0) {
+              incomingSum += scores[sourceIdx] / outDegree;
+            }
+          }
+
+          // Apply PageRank damping formula
+          nextScores[i] = (1 - dampingFactor) / N + dampingFactor * incomingSum;
+          maxDiff = Math.max(maxDiff, Math.abs(nextScores[i] - scores[i]));
+        }
+
+        scores = nextScores;
+
+        if (maxDiff < tolerance) {
+          converged = true;
+          break;
+        }
+      }
+
+      // Attach computed metrics to website objects
+      const results = websites.map((site, idx) => ({
+        ...site,
+        prScore: scores[idx],
+        incomingLinks: incomingMap[idx].map((srcIdx) => websites[srcIdx].id),
+        outgoingCount: site.outgoingLinks.length,
+        incomingCount: incomingMap[idx].length
+      }));
+
+      // Sort descending by exact PageRank score
+      results.sort((a, b) => b.prScore - a.prScore);
+
+      return {
+        rankedSites: results,
+        iterationsRun,
+        converged
+      };
+    }
+
+    /**
+     * 3. TRADITIONAL KEYWORD FREQUENCY COUNTER
+     * Counts whole-word & substring case-insensitive occurrences cleanly.
+     */
+    function countKeywordOccurrences(text, keyword) {
+      if (!text || !keyword) return 0;
+      const cleanKeyword = keyword.trim().toLowerCase();
+      if (!cleanKeyword) return 0;
+
+      // Escape regex special characters
+      const escaped = cleanKeyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      // Match whole words or word-prefix occurrences so "pizza" matches "pizza" and "pizzas"
+      const regex = new RegExp(`\\b${escaped}[a-z]*\\b`, "gi");
+      const matches = text.match(regex);
+      return matches ? matches.length : 0;
+    }
+
+    function executeTraditionalSearch(keyword) {
+      const evaluated = WEBSITES.map((site) => {
+        const count = countKeywordOccurrences(site.content, keyword);
+        return {
+          ...site,
+          keywordCount: count
+        };
+      });
+
+      // Sort descending by keyword occurrences (tie-breaker: Page ID ascending)
+      evaluated.sort((a, b) => {
+        if (b.keywordCount !== a.keywordCount) {
+          return b.keywordCount - a.keywordCount;
+        }
+        return a.id - b.id;
+      });
+
+      return evaluated;
+    }
+
+    /**
+     * 4. HONEST CORS-AWARE LIVE FETCH & CONTENT INDEXER
+     * Attempts real browser fetch() on the 6 domains.
+     * Transparently reports CORS blocks / network failures without fabricating data.
+     */
+    async function attemptLiveFetchAll() {
+      crawlerStatusBanner.innerHTML = `<span class="text-teal-700 font-medium"><i class="fa-solid fa-spinner fa-spin mr-1"></i> Attempting live HTTP fetch across all 6 URLs...</span>`;
+
+      const fetchPromises = WEBSITES.map(async (site) => {
+        site.fetchStatus = "pending";
+        renderIndexerUI();
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3500);
+
+        try {
+          // Attempt real CORS-mode fetch
+          const response = await fetch(site.url, {
+            method: "GET",
+            mode: "cors",
+            signal: controller.signal
+          });
+          clearTimeout(timeoutId);
+
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+          }
+
+          const rawHtml = await response.text();
+          // Strip HTML tags to extract readable text
+          const doc = new DOMParser().parseFromString(rawHtml, "text/html");
+          const extractedText = (doc.body?.textContent || "").replace(/\s+/g, " ").trim();
+
+          if (extractedText.length > 0) {
+            site.fetchStatus = "live";
+            site.contentSource = "live";
+            site.content = extractedText;
+          } else {
+            site.fetchStatus = "cors-blocked";
+          }
+        } catch (err) {
+          clearTimeout(timeoutId);
+          // Honestly mark as blocked/unreachable due to browser CORS or offline domain
+          site.fetchStatus = "cors-blocked";
+        }
+      });
+
+      await Promise.all(fetchPromises);
+
+      const liveCount = WEBSITES.filter((s) => s.fetchStatus === "live").length;
+      if (liveCount === 0) {
+        crawlerStatusBanner.innerHTML = `
+          <span class="text-amber-700 font-medium"><i class="fa-solid fa-shield-halved mr-1"></i> Direct browser fetch blocked by CORS / unreachable domains (0/6 live).</span>
+          <span class="text-slate-500"> Using transparently labeled local index content.</span>
+        `;
+      } else {
+        crawlerStatusBanner.innerHTML = `
+          <span class="text-emerald-700 font-medium"><i class="fa-solid fa-circle-check mr-1"></i> Live fetched ${liveCount}/6 websites.</span>
+          <span class="text-slate-500"> Remaining sites use local indexed content.</span>
+        `;
+      }
+
+      renderIndexerUI();
+      if (currentKeyword) {
+        runSearchPipeline(currentKeyword, false);
+      }
+    }
+
+    function loadSampleDataset() {
+      WEBSITES.forEach((site) => {
+        if (site.fetchStatus !== "live") {
+          site.content = site.sampleContent;
+          site.contentSource = "sample";
+        }
+      });
+      renderIndexerUI();
+      buildManualEditors();
+      if (currentKeyword) {
+        runSearchPipeline(currentKeyword, false);
+      }
+    }
+
+    function clearAllIndexedContent() {
+      WEBSITES.forEach((site) => {
+        site.content = "";
+        site.contentSource = "empty";
+      });
+      renderIndexerUI();
+      buildManualEditors();
+      if (currentKeyword) {
+        runSearchPipeline(currentKeyword, false);
+      }
+    }
+
+    /**
+     * 5. RENDER INDEXER STATUS CARDS & MANUAL CONTENT EDITORS
+     */
+    function getSourceBadgeHTML(site) {
+      if (site.contentSource === "live") {
+        return `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-mono font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200"><i class="fa-solid fa-globe"></i> LIVE FETCHED</span>`;
+      }
+      if (site.contentSource === "user") {
+        return `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-mono font-semibold bg-cyan-50 text-cyan-700 border border-cyan-200"><i class="fa-solid fa-user-pen"></i> USER INDEXED</span>`;
+      }
+      if (site.contentSource === "sample" && site.content.trim().length > 0) {
+        return `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-mono font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200"><i class="fa-solid fa-flask"></i> DEMO SAMPLE</span>`;
+      }
+      return `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-mono font-semibold bg-rose-50 text-rose-700 border border-rose-200"><i class="fa-solid fa-ban"></i> NOT INDEXED</span>`;
+    }
+
+    function renderIndexerUI() {
+      const readyCount = WEBSITES.filter((s) => s.content.trim().length > 0).length;
+      indexedCountText.textContent = `${readyCount}/6`;
+
+      siteStatusGrid.innerHTML = WEBSITES.map((site) => {
+        const fetchBadge =
+          site.fetchStatus === "pending"
+            ? `<span class="text-[10px] text-teal-600 font-mono"><i class="fa-solid fa-spinner fa-spin"></i> fetching...</span>`
+            : site.fetchStatus === "live"
+            ? `<span class="text-[10px] text-emerald-600 font-mono">HTTP 200 OK</span>`
+            : `<span class="text-[10px] text-amber-700 font-mono" title="Browser CORS prevented direct cross-origin read">CORS Blocked</span>`;
+
+        return `
+          <div class="flex items-center justify-between gap-2 px-3 py-2 rounded-xl bg-slate-50 border border-slate-200">
+            <div class="min-w-0">
+              <div class="flex items-center gap-1.5">
+                <span class="text-[11px] font-mono font-bold text-slate-500">P${site.id}</span>
+                <span class="text-xs font-semibold text-slate-800 truncate">${site.name}</span>
+              </div>
+              <div class="text-[11px] font-mono text-slate-500 truncate">${site.url}</div>
+            </div>
+            <div class="flex flex-col items-end gap-1 shrink-0">
+              ${getSourceBadgeHTML(site)}
+              ${fetchBadge}
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function buildManualEditors() {
+      manualEditorsContainer.innerHTML = WEBSITES.map((site) => `
+        <div class="rounded-2xl p-3.5 bg-white border border-slate-200 shadow-2xs flex flex-col gap-2">
+          <div class="flex items-center justify-between gap-2">
+            <span class="text-xs font-bold text-slate-900">Page ${site.id}: ${site.name}</span>
+            ${getSourceBadgeHTML(site)}
+          </div>
+          <span class="text-[11px] font-mono text-teal-700">${site.url}</span>
+          <textarea
+            id="editor-site-${site.id}"
+            rows="4"
+            placeholder="Paste text content for ${site.url} here..."
+            class="w-full rounded-xl bg-slate-50 border border-slate-200 focus:bg-white focus:border-blue-500 focus:outline-none p-2.5 text-xs text-slate-800 leading-relaxed"
+          >${site.content}</textarea>
+        </div>
+      `).join("");
+    }
+
+    /**
+     * 6. RENDER RESULTS FOR SECTION A (TRADITIONAL) & SECTION B (PAGERANK)
+     */
+    function renderTraditionalResults(results, keyword) {
+      const maxCount = results.length > 0 ? results[0].keywordCount : 0;
+
+      if (maxCount === 0) {
+        traditionalNoResults.classList.remove("hidden");
+        traditionalNoResultsText.textContent = `0 occurrences found for "${keyword}" across all 6 websites. Try another keyword (e.g., "pizza", "pune") or add content in the Indexer above.`;
+        traditionalResultsList.innerHTML = "";
+        return;
+      }
+
+      traditionalNoResults.classList.add("hidden");
+
+      traditionalResultsList.innerHTML = results
+        .map((site, idx) => {
+          const rank = idx + 1;
+          const isFirst = rank === 1 && site.keywordCount > 0;
+          const percentage = maxCount > 0 ? Math.round((site.keywordCount / maxCount) * 100) : 0;
+
+          return `
+            <article class="glass-card rounded-2xl p-4 sm:p-5 ${isFirst ? "rank-one-traditional" : "border-slate-200"}">
+              <div class="flex items-start justify-between gap-3">
+                <div class="flex items-start gap-3.5 min-w-0">
+                  <!-- Rank Badge -->
+                  <div class="w-10 h-10 rounded-xl flex flex-col items-center justify-center shrink-0 font-mono font-bold ${
+                    isFirst
+                      ? "bg-gradient-to-br from-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-500/25"
+                      : "bg-slate-100 text-slate-700 border border-slate-200"
+                  }">
+                    <span class="text-[10px] leading-none opacity-80">RANK</span>
+                    <span class="text-base leading-tight">#${rank}</span>
+                  </div>
+
+                  <!-- Title & URL -->
+                  <div class="min-w-0">
+                    <div class="flex flex-wrap items-center gap-2">
+                      <h3 class="text-base sm:text-lg font-bold text-slate-900 truncate">${site.name}</h3>
+                      ${
+                        isFirst
+                          ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-600 text-white shadow-2xs"><i class="fa-solid fa-trophy text-amber-300"></i> TOP MATCH</span>`
+                          : ""
+                      }
+                      ${getSourceBadgeHTML(site)}
+                    </div>
+                    <a href="${site.url}" target="_blank" rel="noopener noreferrer" class="text-xs font-mono text-indigo-600 hover:text-indigo-800 underline decoration-indigo-300 break-all">
+                      ${site.url}
+                    </a>
+                  </div>
+                </div>
+
+                <!-- Occurrence Pill -->
+                <div class="text-right shrink-0">
+                  <div class="text-xl sm:text-2xl font-extrabold font-mono ${isFirst ? "text-indigo-700" : "text-slate-800"}">
+                    ${site.keywordCount}
+                  </div>
+                  <div class="text-[10px] uppercase tracking-wider text-slate-500">
+                    ${site.keywordCount === 1 ? "Match" : "Matches"}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Visual Frequency Bar -->
+              <div class="mt-4">
+                <div class="flex justify-between text-[11px] text-slate-500 mb-1">
+                  <span>Keyword Density Relative to #1</span>
+                  <span class="font-mono font-semibold text-indigo-700">${percentage}%</span>
+                </div>
+                <div class="w-full h-2.5 rounded-full bg-slate-100 overflow-hidden border border-slate-200">
+                  <div
+                    class="progress-bar-fill h-full rounded-full bg-gradient-to-r from-indigo-600 via-purple-500 to-blue-500"
+                    style="width: ${percentage}%"
+                  ></div>
+                </div>
+              </div>
+            </article>
+          `;
+        })
+        .join("");
+    }
+
+    function renderPageRankResults(prData, keyword) {
+      const results = prData.rankedSites;
+      const maxScore = results.length > 0 ? results[0].prScore : 1;
+
+      prIterationsMeta.textContent = `${prData.iterationsRun} iterations (${prData.converged ? "Converged" : "Max limit"})`;
+
+      pagerankResultsList.innerHTML = results
+        .map((site, idx) => {
+          const rank = idx + 1;
+          const isFirst = rank === 1;
+          const relativeBarWidth = maxScore > 0 ? Math.round((site.prScore / maxScore) * 100) : 0;
+          const sharePercent = (site.prScore * 100).toFixed(2);
+          const keywordCount = countKeywordOccurrences(site.content, keyword);
+
+          const incomingLabels =
+            site.incomingLinks.length > 0
+              ? site.incomingLinks.map((id) => `P${id}`).join(", ")
+              : "None";
+          const outgoingLabels =
+            site.outgoingLinks.length > 0
+              ? site.outgoingLinks.map((id) => `P${id}`).join(", ")
+              : "None";
+
+          return `
+            <article class="glass-card rounded-2xl p-4 sm:p-5 ${isFirst ? "rank-one-pagerank" : "border-slate-200"}">
+              <div class="flex items-start justify-between gap-3">
+                <div class="flex items-start gap-3.5 min-w-0">
+                  <!-- Rank Badge -->
+                  <div class="w-10 h-10 rounded-xl flex flex-col items-center justify-center shrink-0 font-mono font-bold ${
+                    isFirst
+                      ? "bg-gradient-to-br from-cyan-600 to-teal-600 text-white shadow-md shadow-teal-500/25"
+                      : "bg-slate-100 text-slate-700 border border-slate-200"
+                  }">
+                    <span class="text-[10px] leading-none opacity-80">RANK</span>
+                    <span class="text-base leading-tight">#${rank}</span>
+                  </div>
+
+                  <!-- Title & URL -->
+                  <div class="min-w-0">
+                    <div class="flex flex-wrap items-center gap-2">
+                      <span class="px-1.5 py-0.5 rounded bg-slate-100 border border-slate-200 text-[10px] font-mono font-semibold text-teal-800">Page ${site.id}</span>
+                      <h3 class="text-base sm:text-lg font-bold text-slate-900 truncate">${site.name}</h3>
+                      ${
+                        isFirst
+                          ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-600 text-white shadow-2xs"><i class="fa-solid fa-crown text-amber-200"></i> HIGHEST AUTHORITY</span>`
+                          : ""
+                      }
+                    </div>
+                    <a href="${site.url}" target="_blank" rel="noopener noreferrer" class="text-xs font-mono text-teal-700 hover:text-teal-900 underline decoration-teal-300 break-all">
+                      ${site.url}
+                    </a>
+                  </div>
+                </div>
+
+                <!-- Calculated PageRank Score -->
+                <div class="text-right shrink-0">
+                  <div class="text-lg sm:text-xl font-extrabold font-mono ${isFirst ? "text-teal-700" : "text-slate-800"}">
+                    ${site.prScore.toFixed(4)}
+                  </div>
+                  <div class="text-[10px] font-mono text-teal-700/80">
+                    ${sharePercent}% Authority
+                  </div>
+                </div>
+              </div>
+
+              <!-- Link Topology Metrics (Incoming vs Outgoing) -->
+              <div class="mt-3.5 grid grid-cols-3 gap-2 text-xs">
+                <div class="px-2.5 py-1.5 rounded-xl bg-slate-50 border border-slate-200">
+                  <span class="text-[10px] text-slate-500 block">Incoming Links</span>
+                  <span class="font-mono font-bold text-emerald-600">${site.incomingCount}</span>
+                  <span class="text-[10px] font-mono text-slate-500 ml-1">(${incomingLabels})</span>
+                </div>
+                <div class="px-2.5 py-1.5 rounded-xl bg-slate-50 border border-slate-200">
+                  <span class="text-[10px] text-slate-500 block">Outgoing Links</span>
+                  <span class="font-mono font-bold text-amber-600">${site.outgoingCount}</span>
+                  <span class="text-[10px] font-mono text-slate-500 ml-1">(${outgoingLabels})</span>
+                </div>
+                <div class="px-2.5 py-1.5 rounded-xl bg-slate-50 border border-slate-200">
+                  <span class="text-[10px] text-slate-500 block">Keyword Hits</span>
+                  <span class="font-mono font-bold text-slate-800">${keywordCount}</span>
+                  <span class="text-[10px] text-slate-500 ml-1">for "${keyword}"</span>
+                </div>
+              </div>
+
+              <!-- Visual PageRank Score Bar -->
+              <div class="mt-3.5">
+                <div class="flex justify-between text-[11px] text-slate-500 mb-1">
+                  <span>Normalized PageRank Weight</span>
+                  <span class="font-mono font-semibold text-teal-700">${site.prScore.toFixed(5)}</span>
+                </div>
+                <div class="w-full h-2.5 rounded-full bg-slate-100 overflow-hidden border border-slate-200">
+                  <div
+                    class="progress-bar-fill h-full rounded-full bg-gradient-to-r from-cyan-500 via-teal-500 to-emerald-500"
+                    style="width: ${relativeBarWidth}%"
+                  ></div>
+                </div>
+              </div>
+            </article>
+          `;
+        })
+        .join("");
+    }
+
+    /**
+     * 7. DYNAMIC COMPARISON SUMMARY GENERATOR
+     */
+    function renderComparisonSummary(tradResults, prData, keyword) {
+      const topTrad = tradResults[0];
+      const topPR = prData.rankedSites[0];
+      const hasTradMatches = topTrad && topTrad.keywordCount > 0;
+
+      const tradWinnerText = hasTradMatches
+        ? `<strong class="text-indigo-700">${topTrad.name}</strong> (${topTrad.url}) with <span class="font-mono text-indigo-800 font-semibold">${topTrad.keywordCount}</span> occurrence(s) of "<span class="text-slate-900 font-semibold">${keyword}</span>"`
+        : `<span class="text-amber-700 font-semibold">No website</span> (0 matches found for "${keyword}")`;
+
+      const prWinnerText = `<strong class="text-teal-700">${topPR.name}</strong> (${topPR.url}) with a calculated PageRank score of <span class="font-mono text-teal-800 font-semibold">${topPR.prScore.toFixed(4)}</span> (${(topPR.prScore * 100).toFixed(2)}% of total graph authority)`;
+
+      const sameWinner = hasTradMatches && topTrad.id === topPR.id;
+
+      comparisonSummaryContent.innerHTML = `
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div class="p-3.5 rounded-2xl bg-indigo-50/80 border border-indigo-200">
+            <div class="text-xs font-mono font-semibold uppercase text-indigo-700 mb-1">#1 Traditional Frequency Winner</div>
+            <p class="text-xs sm:text-sm text-slate-700">${tradWinnerText}.</p>
+          </div>
+          <div class="p-3.5 rounded-2xl bg-cyan-50/80 border border-cyan-200">
+            <div class="text-xs font-mono font-semibold uppercase text-teal-700 mb-1">#1 PageRank Algorithm Winner</div>
+            <p class="text-xs sm:text-sm text-slate-700">${prWinnerText}.</p>
+          </div>
+        </div>
+
+        <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2.5 text-xs sm:text-sm text-slate-700">
+          <p>
+            <strong class="text-slate-900">Why are the rankings different?</strong>
+            ${
+              sameWinner
+                ? `For the keyword "<span class="text-teal-700 font-semibold">${keyword}</span>", both models agree on #1, yet notice how the rest of the leaderboard diverges! Traditional search relies purely on on-page word repetition, whereas Mini Google's PageRank ignores word repetition and evaluates the web's hyperlink endorsements.`
+                : `Traditional Search rewards whichever page repeats "<span class="text-indigo-700 font-semibold">${keyword}</span>" the most—making it vulnerable to <em>keyword stuffing</em> (for example, <strong>Page 6: pizza-pizza-pizza.com</strong> repeats "pizza" 12 times even though zero websites link to it). Meanwhile, PageRank elevates <strong>Page 2: best-pizza-pune.com</strong> because 4 other websites endorse it via incoming links.`
+            }
+          </p>
+          <p>
+            <strong class="text-slate-900">How PageRank evaluates link authority:</strong>
+            Instead of counting words, PageRank models a "Random Surfer" clicking links with damping factor <code class="text-teal-700 font-semibold">d = 0.85</code>. Each incoming link acts as a vote of confidence weighted by the linking page's own importance (<code class="text-teal-700 font-semibold">PR(Ti) / C(Ti)</code>). Because Pages 1, 3, 4, and 5 all link directly to Page 2, link equity concentrates at <strong class="text-teal-700">best-pizza-pune.com</strong> regardless of the search query.
+          </p>
+        </div>
+      `;
+    }
+
+    /**
+     * 8. INTERACTIVE SVG DIRECTED GRAPH VISUALIZER (LIGHT THEME PALETTE)
+     */
+    function renderDirectedGraphSVG(prData) {
+      const svg = document.getElementById("linkGraphSvg");
+      // Keep <defs> and clear old shapes
+      const defs = svg.querySelector("defs").outerHTML;
+
+      // Fixed coordinates for a clean 6-node layout
+      const nodeCoords = {
+        1: { x: 95, y: 65 },
+        2: { x: 230, y: 135 },
+        3: { x: 350, y: 60 },
+        4: { x: 350, y: 210 },
+        5: { x: 210, y: 235 },
+        6: { x: 65, y: 195 }
+      };
+
+      const scoreLookup = {};
+      prData.rankedSites.forEach((s) => {
+        scoreLookup[s.id] = s.prScore;
+      });
+
+      let edgesSvg = "";
+      WEBSITES.forEach((fromSite) => {
+        const start = nodeCoords[fromSite.id];
+        fromSite.outgoingLinks.forEach((toId) => {
+          const end = nodeCoords[toId];
+          // Slight curve offset for bidirectional edges (Page 1 <-> Page 2)
+          const isBidirectional =
+            WEBSITES.find((w) => w.id === toId)?.outgoingLinks.includes(fromSite.id);
+
+          if (isBidirectional) {
+            const midX = (start.x + end.x) / 2;
+            const midY = (start.y + end.y) / 2 + (fromSite.id < toId ? -20 : 20);
+            edgesSvg += `<path d="M ${start.x} ${start.y} Q ${midX} ${midY} ${end.x} ${end.y}" fill="none" stroke="#0891b2" stroke-width="1.75" stroke-opacity="0.75" marker-end="url(#arrowhead)" />`;
+          } else {
+            edgesSvg += `<line x1="${start.x}" y1="${start.y}" x2="${end.x}" y2="${end.y}" stroke="#0891b2" stroke-width="1.75" stroke-opacity="0.7" marker-end="url(#arrowhead)" />`;
+          }
+        });
+      });
+
+      let nodesSvg = "";
+      WEBSITES.forEach((site) => {
+        const pos = nodeCoords[site.id];
+        const isTopPR = prData.rankedSites[0].id === site.id;
+        const radius = isTopPR ? 23 : 18;
+        const fill = isTopPR ? "#0d9488" : "#ffffff";
+        const stroke = isTopPR ? "#0f766e" : "#4f46e5";
+        const labelColor = isTopPR ? "#ffffff" : "#0f172a";
+        const subLabelColor = isTopPR ? "#ccfbf1" : "#475569";
+
+        nodesSvg += `
+          <g class="cursor-pointer">
+            <circle cx="${pos.x}" cy="${pos.y}" r="${radius}" fill="${fill}" stroke="${stroke}" stroke-width="${isTopPR ? 3 : 2}" />
+            <text x="${pos.x}" y="${pos.y - 1}" text-anchor="middle" fill="${labelColor}" font-family="JetBrains Mono, monospace" font-size="11" font-weight="bold">P${site.id}</text>
+            <text x="${pos.x}" y="${pos.y + 11}" text-anchor="middle" fill="${subLabelColor}" font-family="JetBrains Mono, monospace" font-size="8" font-weight="600">${scoreLookup[site.id].toFixed(2)}</text>
+          </g>
+        `;
+      });
+
+      svg.innerHTML = defs + edgesSvg + nodesSvg;
+    }
+
+    /**
+     * 9. MAIN SEARCH EXECUTION PIPELINE
+     */
+    function runSearchPipeline(rawQuery, showLoader = true) {
+      const trimmed = rawQuery.trim();
+
+      // Empty-search validation
+      if (!trimmed) {
+        validationMessage.classList.remove("hidden");
+        searchInput.focus();
+        return;
+      }
+
+      validationMessage.classList.add("hidden");
+      currentKeyword = trimmed;
+      searchInput.value = trimmed;
+      clearSearchBtn.classList.remove("hidden");
+
+      const execute = () => {
+        loadingIndicator.classList.add("hidden");
+        activeQueryHeader.classList.remove("hidden");
+        displayKeyword.textContent = trimmed;
+
+        // 1. Run Traditional Frequency Search
+        const traditionalResults = executeTraditionalSearch(trimmed);
+
+        // 2. Run Iterative PageRank Algorithm (cached since graph is fixed)
+        if (!pageRankCache) {
+          pageRankCache = calculatePageRank(WEBSITES, 0.85, 100, 1e-7);
+        }
+
+        // 3. Render both panels & summary simultaneously
+        renderTraditionalResults(traditionalResults, trimmed);
+        renderPageRankResults(pageRankCache, trimmed);
+        renderComparisonSummary(traditionalResults, pageRankCache, trimmed);
+        renderDirectedGraphSVG(pageRankCache);
+      };
+
+      if (showLoader) {
+        loadingIndicator.classList.remove("hidden");
+        setTimeout(execute, 260);
+      } else {
+        execute();
+      }
+    }
+
+    /**
+     * 10. EVENT LISTENERS & INITIALIZATION
+     */
+    searchForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      runSearchPipeline(searchInput.value, true);
+    });
+
+    searchInput.addEventListener("input", () => {
+      if (searchInput.value.trim().length > 0) {
+        validationMessage.classList.add("hidden");
+        clearSearchBtn.classList.remove("hidden");
+      } else {
+        clearSearchBtn.classList.add("hidden");
+      }
+    });
+
+    clearSearchBtn.addEventListener("click", () => {
+      searchInput.value = "";
+      clearSearchBtn.classList.add("hidden");
+      validationMessage.classList.add("hidden");
+      searchInput.focus();
+    });
+
+    // Quick keyword suggestion chips
+    document.querySelectorAll(".quick-chip").forEach((chip) => {
+      chip.addEventListener("click", () => {
+        const kw = chip.getAttribute("data-keyword");
+        runSearchPipeline(kw, true);
+      });
+    });
+
+    // Toggle Manual Content Indexer Drawer
+    document.getElementById("toggleIndexerBtn").addEventListener("click", () => {
+      const isHidden = indexerDrawer.classList.contains("hidden");
+      if (isHidden) {
+        buildManualEditors();
+        indexerDrawer.classList.remove("hidden");
+        document.getElementById("toggleIndexerLabel").textContent = "Hide Content Editor";
+      } else {
+        indexerDrawer.classList.add("hidden");
+        document.getElementById("toggleIndexerLabel").textContent = "Manage / Paste Site Content";
+      }
+    });
+
+    // Save Manual User Content
+    document.getElementById("saveManualContentBtn").addEventListener("click", () => {
+      WEBSITES.forEach((site) => {
+        const textarea = document.getElementById(`editor-site-${site.id}`);
+        if (textarea) {
+          const val = textarea.value.trim();
+          site.content = val;
+          if (val.length === 0) {
+            site.contentSource = "empty";
+          } else if (val !== site.sampleContent && site.fetchStatus !== "live") {
+            site.contentSource = "user";
+          }
+        }
+      });
+
+      renderIndexerUI();
+      buildManualEditors();
+      if (currentKeyword) {
+        runSearchPipeline(currentKeyword, false);
+      }
+    });
+
+    // Action Buttons in Indexer Bar
+    document.getElementById("retryFetchBtn").addEventListener("click", () => {
+      attemptLiveFetchAll();
+    });
+
+    document.getElementById("loadSampleBtn").addEventListener("click", () => {
+      loadSampleDataset();
+    });
+
+    document.getElementById("clearContentBtn").addEventListener("click", () => {
+      clearAllIndexedContent();
+    });
+
+    // Initialize Application on Window Load
+    window.addEventListener("DOMContentLoaded", () => {
+      // Preload transparent Demo Sample content so immediate searches work out-of-the-box,
+      // while honestly attempting live browser fetch in parallel.
+      WEBSITES.forEach((site) => {
+        site.content = site.sampleContent;
+        site.contentSource = "sample";
+      });
+
+      renderIndexerUI();
+      buildManualEditors();
+
+      // Compute initial PageRank & run default search for "pizza"
+      pageRankCache = calculatePageRank(WEBSITES, 0.85, 100, 1e-7);
+      runSearchPipeline("pizza", false);
+
+      // Honestly check live fetch availability (CORS status)
+      attemptLiveFetchAll();
+    });
+  </script>
+</body>
+</html>
